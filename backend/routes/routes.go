@@ -59,5 +59,14 @@ func Register(db *gorm.DB) *http.ServeMux {
 		),
 	)
 
+	mux.Handle(
+		"PUT /api/admin/products/{id}",
+		middleware.RequireAuth(
+			middleware.RequireRole("admin")(
+				http.HandlerFunc(handlers.UpdateProduct(db)),
+			),
+		),
+	)
+
 	return mux
 }
