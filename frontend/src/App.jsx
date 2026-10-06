@@ -5,6 +5,9 @@ import Home from "./pages/Home.jsx";
 import Login from "./pages/Login";
 import { AuthProvider } from "./context/AuthProvider";
 import BuyerDashboard from "./pages/BuyerDashboard";
+import ProtectedRoute from "./components/ProtectedRoute";
+import GuestRoute from "./components/GuestRoute";
+import AdminDashboard from "./pages/AdminDashboard";
 
 function App() {
   return (
@@ -14,8 +17,31 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/commodities" element={<CommodityCatalog />} />
           <Route path="/commodities/:id" element={<ProductDetail />} />
+          <Route
+            path="/login"
+            element={
+              <GuestRoute>
+                <Login />
+              </GuestRoute>
+            }
+          />
           <Route path="/login" element={<Login />} />
-          <Route path="/buyer" element={<BuyerDashboard />} />
+          <Route
+            path="/buyer"
+            element={
+              <ProtectedRoute>
+                <BuyerDashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin"
+            element={
+              <ProtectedRoute>
+                <AdminDashboard />
+              </ProtectedRoute>
+            }
+          />
         </Routes>
       </BrowserRouter>
     </AuthProvider>

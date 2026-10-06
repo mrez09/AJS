@@ -2,6 +2,7 @@ import { useState } from "react";
 import { login } from "../services/authService";
 import { saveAuth } from "../services/authStorage";
 import { useAuth } from "../context/useAuth";
+import { useNavigate } from "react-router-dom";
 
 function Login() {
   const [email, setEmail] = useState("");
@@ -10,6 +11,7 @@ function Login() {
   const [loading, setLoading] = useState(false);
 
   const { setToken, setUser } = useAuth();
+  const navigate = useNavigate();
 
   async function handleSubmit(event) {
     event.preventDefault();
@@ -26,6 +28,11 @@ function Login() {
       setUser(data.user);
 
       console.log("Login successful:", data);
+      if (data.user.role === "buyer") {
+        navigate("/buyer");
+      } else if (data.user.role === "admin") {
+        navigate("/admin");
+      }
     } catch (error) {
       setError(error.message);
     } finally {
