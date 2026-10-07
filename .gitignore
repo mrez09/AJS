@@ -3,3 +3,7 @@
 # Locally uploaded product images (configurable with AJS_UPLOAD_DIR)
 /uploads/
 /backend/uploads/
+
+# Assessment submission files
+AJS_Source_Code.zip
+REVIEWER_SETUP.txt
