@@ -8,6 +8,12 @@ import BuyerDashboard from "./pages/BuyerDashboard";
 import ProtectedRoute from "./components/ProtectedRoute";
 import GuestRoute from "./components/GuestRoute";
 import AdminDashboard from "./pages/AdminDashboard";
+import AdminCommodities from "./pages/AdminCommodities";
+import EditCommodity from "./pages/EditCommodity.jsx";
+import AdminRequests from "./pages/AdminRequests";
+import Cart from "./pages/Cart.jsx";
+import Orders from "./pages/Orders.jsx";
+import AdminRoute from "./components/AdminRoute";
 
 function App() {
   return (
@@ -25,7 +31,6 @@ function App() {
               </GuestRoute>
             }
           />
-          <Route path="/login" element={<Login />} />
           <Route
             path="/buyer"
             element={
@@ -34,11 +39,54 @@ function App() {
               </ProtectedRoute>
             }
           />
+
           <Route
             path="/admin"
             element={
-              <ProtectedRoute>
+              <AdminRoute>
                 <AdminDashboard />
+              </AdminRoute>
+            }
+          />
+          <Route
+            path="/admin/commodities"
+            element={
+              <AdminRoute>
+                <AdminCommodities />
+              </AdminRoute>
+            }
+          />
+          <Route
+            path="/admin/commodities/:id/edit"
+            element={
+              <AdminRoute>
+                <EditCommodity />
+              </AdminRoute>
+            }
+          />
+          <Route
+            path="/admin/requests"
+            element={
+              <AdminRoute>
+                <AdminRequests />
+              </AdminRoute>
+            }
+          />
+
+          <Route
+            path="/cart"
+            element={
+              <ProtectedRoute>
+                <Cart />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/buyer/orders"
+            element={
+              <ProtectedRoute>
+                <Orders />
               </ProtectedRoute>
             }
           />

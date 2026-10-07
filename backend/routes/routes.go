@@ -8,9 +8,10 @@ import (
 	"gorm.io/gorm"
 )
 
-func Register(db *gorm.DB) *http.ServeMux {
+func Register(db *gorm.DB, uploadDir string) *http.ServeMux {
 	mux := http.NewServeMux()
 
+	mux.HandleFunc("GET /uploads/{filename}", handlers.ServeProductImage(uploadDir))
 	mux.HandleFunc("/api/health", handlers.Health)
 	mux.HandleFunc("/api/products", handlers.GetProducts(db))
 	mux.HandleFunc("GET /api/products/{id}", handlers.GetProduct(db))
@@ -63,7 +64,44 @@ func Register(db *gorm.DB) *http.ServeMux {
 		"PUT /api/admin/products/{id}",
 		middleware.RequireAuth(
 			middleware.RequireRole("admin")(
-				http.HandlerFunc(handlers.UpdateProduct(db)),
+				http.HandlerFunc(handlers.UpdateProduct(db, uploadDir)),
+			),
+		),
+	)
+
+	mux.Handle(
+		"POST /api/admin/products",
+		middleware.RequireAuth(
+			middleware.RequireRole("admin")(
+				http.HandlerFunc(handlers.CreateProduct(db, uploadDir)),
+			),
+		),
+	)
+
+	//Cart
+	mux.Handle(
+		"GET /api/cart",
+		middleware.RequireAuth(
+			middleware.RequireRole("buyer")(
+				http.HandlerFunc(handlers.GetCart(db)),
+			),
+		),
+	)
+
+	mux.Handle(
+		"POST /api/cart/items",
+		middleware.RequireAuth(
+			middleware.RequireRole("buyer")(
+				http.HandlerFunc(handlers.AddCartItem(db)),
+			),
+		),
+	)
+
+	mux.Handle(
+		"DELETE /api/cart/items/{id}",
+		middleware.RequireAuth(
+			middleware.RequireRole("buyer")(
+				http.HandlerFunc(handlers.RemoveCartItem(db)),
 			),
 		),
 	)

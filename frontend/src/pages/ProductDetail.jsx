@@ -1,82 +1,113 @@
-import { useEffect, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
-import ArrowIcon from '../components/ArrowIcon.jsx'
-import Footer from '../components/Footer.jsx'
-import Navbar from '../components/Navbar.jsx'
-import { getProduct } from '../services/productService.js'
+import { useEffect, useState } from "react";
+import { Link, useParams } from "react-router-dom";
+import ArrowIcon from "../components/ArrowIcon.jsx";
+import CommodityImage from "../components/CommodityImage.jsx";
+import Footer from "../components/Footer.jsx";
+import Navbar from "../components/Navbar.jsx";
+import { useAuth } from "../context/useAuth";
+import { getProduct } from "../services/productService.js";
+import { addCartItem } from "../services/cartService";
 
-const quantityFormatter = new Intl.NumberFormat('en-US', {
+const quantityFormatter = new Intl.NumberFormat("en-US", {
   maximumFractionDigits: 2,
-})
+});
 
 function formatQuantity(quantity) {
-  return `${quantityFormatter.format(quantity)} KG`
-}
-
-function ProductImage({ product }) {
-  const initials = product.Name
-    .split(/\s+/)
-    .slice(0, 2)
-    .map((word) => word[0])
-    .join('')
-    .toUpperCase()
-
-  return (
-    <div className="relative flex min-h-64 items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-br from-cyan-100 via-blue-100 to-slate-200 sm:min-h-96">
-      <div className="absolute -right-12 -top-16 size-64 rounded-full border border-white/60" />
-      <div className="absolute -right-2 -top-8 size-44 rounded-full border border-white/60" />
-      <div className="absolute -bottom-24 -left-12 size-64 rounded-full border border-white/60" />
-      <span className="relative grid size-28 place-items-center rounded-3xl border border-white/70 bg-white/40 text-3xl font-semibold tracking-wide text-[#16455d] shadow-sm backdrop-blur-sm sm:size-36 sm:text-4xl">
-        {initials}
-      </span>
-      {product.Image && (
-        <img
-          src={product.Image}
-          alt={product.Name}
-          className="absolute inset-0 size-full object-cover"
-        />
-      )}
-      <span className="absolute left-4 top-4 rounded-full bg-white/80 px-3 py-1.5 text-xs font-bold uppercase tracking-[0.13em] text-[#174c62] backdrop-blur">
-        {product.Grade}
-      </span>
-    </div>
-  )
+  return `${quantityFormatter.format(quantity)} KG`;
 }
 
 function ProductDetail() {
-  const { id } = useParams()
-  const [product, setProduct] = useState(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
+  const { id } = useParams();
+  const { isAuthenticated, user } = useAuth();
+  const [product, setProduct] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  /**Product Detail */
+  const [quantity, setQuantity] = useState("");
+  const [cartMessage, setCartMessage] = useState("");
+  const [quantityError, setQuantityError] = useState("");
+  const [loginPrompt, setLoginPrompt] = useState(false);
+
+  async function handleAddToCart() {
+    const requestedQuantity = Number(quantity);
+
+    setQuantityError("");
+    setCartMessage("");
+    setLoginPrompt(false);
+
+    if (!isAuthenticated) {
+      setLoginPrompt(true);
+      return;
+    }
+
+    if (user?.role !== "buyer") {
+      setQuantityError("Only buyer accounts can add commodities to a cart.");
+      return;
+    }
+
+    if (!Number.isFinite(requestedQuantity) || requestedQuantity <= 0) {
+      setQuantityError("Enter a quantity greater than zero.");
+      return;
+    }
+
+    if (requestedQuantity < product.MOQ) {
+      setQuantityError(
+        `Minimum order quantity is ${formatQuantity(product.MOQ)}.`,
+      );
+      return;
+    }
+
+    if (requestedQuantity > product.AvailableQuantity) {
+      setQuantityError(
+        `Available stock is only ${formatQuantity(product.AvailableQuantity)}.`,
+      );
+      return;
+    }
+
+    if (!isAvailable) {
+      setQuantityError("This product is currently unavailable.");
+      return;
+    }
+
+    try {
+      await addCartItem(product.ID, requestedQuantity);
+
+      setCartMessage(`${product.Name} added to cart successfully.`);
+      setQuantity("");
+    } catch (error) {
+      setQuantityError(error.message);
+    }
+  }
 
   useEffect(() => {
-    const controller = new AbortController()
+    const controller = new AbortController();
 
     async function loadProduct() {
-      setLoading(true)
-      setProduct(null)
-      setError(null)
+      setLoading(true);
+      setProduct(null);
+      setError(null);
 
       try {
-        const result = await getProduct(id, { signal: controller.signal })
-        setProduct(result)
+        const result = await getProduct(id, { signal: controller.signal });
+        setProduct(result);
       } catch (requestError) {
-        if (requestError.name !== 'AbortError') {
-          setError(requestError)
+        if (requestError.name !== "AbortError") {
+          setError(requestError);
         }
       } finally {
         if (!controller.signal.aborted) {
-          setLoading(false)
+          setLoading(false);
         }
       }
     }
 
-    loadProduct()
+    loadProduct();
 
-    return () => controller.abort()
-  }, [id])
+    return () => controller.abort();
+  }, [id]);
 
-  const isAvailable = product?.Status?.toLowerCase() === 'available'
+  const isAvailable = product?.Status?.toLowerCase() === "available";
 
   return (
     <div className="min-h-screen overflow-hidden bg-white text-[#102b45]">
@@ -124,7 +155,10 @@ function ProductDetail() {
           )}
 
           {!loading && error && error.status !== 404 && (
-            <section className="mt-8 rounded-2xl border border-red-200 bg-red-50 px-6 py-10 text-center" role="alert">
+            <section
+              className="mt-8 rounded-2xl border border-red-200 bg-red-50 px-6 py-10 text-center"
+              role="alert"
+            >
               <h1 className="text-xl font-semibold text-[#102b45]">
                 We couldn’t load this product.
               </h1>
@@ -139,7 +173,13 @@ function ProductDetail() {
 
           {!loading && !error && product && (
             <article className="mt-8 grid gap-8 lg:grid-cols-[1.1fr_0.9fr] lg:gap-12">
-              <ProductImage product={product} />
+              <CommodityImage
+                image={product.Image}
+                name={product.Name}
+                grade={product.Grade}
+                className="min-h-64 rounded-2xl sm:min-h-96"
+                fallbackClassName="size-28 rounded-3xl text-3xl sm:size-36 sm:text-4xl"
+              />
 
               <div className="flex flex-col">
                 <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#0d7181]">
@@ -151,16 +191,16 @@ function ProductDetail() {
                 <span
                   className={`mt-5 inline-flex w-fit items-center gap-2 rounded-full px-3 py-1.5 text-xs font-semibold ${
                     isAvailable
-                      ? 'bg-emerald-50 text-emerald-800'
-                      : 'bg-slate-100 text-slate-600'
+                      ? "bg-emerald-50 text-emerald-800"
+                      : "bg-slate-100 text-slate-600"
                   }`}
                 >
                   <span
                     className={`size-2 rounded-full ${
-                      isAvailable ? 'bg-emerald-500' : 'bg-slate-400'
+                      isAvailable ? "bg-emerald-500" : "bg-slate-400"
                     }`}
                   />
-                  {product.Status || 'Status unavailable'}
+                  {product.Status || "Status unavailable"}
                 </span>
 
                 <div className="mt-7">
@@ -168,7 +208,8 @@ function ProductDetail() {
                     Description
                   </h2>
                   <p className="mt-2 whitespace-pre-line text-sm leading-7 text-slate-600">
-                    {product.Description || 'No description is available for this product.'}
+                    {product.Description ||
+                      "No description is available for this product."}
                   </p>
                 </div>
 
@@ -176,29 +217,33 @@ function ProductDetail() {
                   <div className="bg-white p-4">
                     <dt className="text-xs text-slate-500">Grade</dt>
                     <dd className="mt-1 text-sm font-semibold text-[#102b45]">
-                      {product.Grade || '—'}
+                      {product.Grade || "—"}
                     </dd>
                   </div>
                   <div className="bg-white p-4">
                     <dt className="text-xs text-slate-500">Condition</dt>
                     <dd className="mt-1 text-sm font-semibold text-[#102b45]">
-                      {product.Condition || '—'}
+                      {product.Condition || "—"}
                     </dd>
                   </div>
                   <div className="bg-white p-4">
                     <dt className="text-xs text-slate-500">Origin</dt>
                     <dd className="mt-1 text-sm font-semibold text-[#102b45]">
-                      {product.Origin || '—'}
+                      {product.Origin || "—"}
                     </dd>
                   </div>
                   <div className="bg-white p-4">
-                    <dt className="text-xs text-slate-500">Available quantity</dt>
+                    <dt className="text-xs text-slate-500">
+                      Available quantity
+                    </dt>
                     <dd className="mt-1 text-sm font-semibold text-[#102b45]">
                       {formatQuantity(product.AvailableQuantity)}
                     </dd>
                   </div>
                   <div className="bg-white p-4 sm:col-span-2">
-                    <dt className="text-xs text-slate-500">Minimum order quantity (MOQ)</dt>
+                    <dt className="text-xs text-slate-500">
+                      Minimum order quantity (MOQ)
+                    </dt>
                     <dd className="mt-1 text-sm font-semibold text-[#102b45]">
                       {formatQuantity(product.MOQ)}
                     </dd>
@@ -206,17 +251,80 @@ function ProductDetail() {
                 </dl>
 
                 <div className="mt-7 rounded-2xl bg-[#f8fafb] p-5">
-                  <button
-                    type="button"
-                    disabled
-                    className="inline-flex w-full cursor-not-allowed items-center justify-center gap-2 rounded-lg bg-[#102b45] px-5 py-3.5 text-sm font-semibold text-white opacity-75 sm:w-auto"
-                    aria-describedby="order-coming-soon"
+                  <label
+                    htmlFor="quantity"
+                    className="text-sm font-semibold text-[#102b45]"
                   >
-                    Request Order <ArrowIcon diagonal />
-                  </button>
-                  <p id="order-coming-soon" className="mt-3 text-xs leading-5 text-slate-500">
-                    Ordering is coming in the next step. Contact our team to
-                    discuss this product in the meantime.
+                    Requested quantity (KG)
+                  </label>
+
+                  <div className="mt-3 flex flex-col gap-3 sm:flex-row">
+                    <input
+                      id="quantity"
+                      type="number"
+                      min={product.MOQ}
+                      max={product.AvailableQuantity}
+                      value={quantity}
+                      onChange={(event) => setQuantity(event.target.value)}
+                      placeholder={`Minimum ${product.MOQ} KG`}
+                      disabled={!isAvailable}
+                      className="w-full rounded-lg border border-slate-300 bg-white px-4 py-3 text-sm text-[#102b45] outline-none transition focus:border-[#0d7181] focus:ring-2 focus:ring-cyan-100 sm:max-w-48"
+                    />
+
+                    <button
+                      type="button"
+                      onClick={handleAddToCart}
+                      disabled={!isAvailable}
+                      className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#102b45] px-5 py-3.5 text-sm font-semibold text-white transition-colors hover:bg-[#174b68] disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      Add to Cart
+                      <ArrowIcon diagonal />
+                    </button>
+                  </div>
+
+                  {quantityError && (
+                    <p
+                      className="mt-3 text-sm font-medium text-red-600"
+                      role="alert"
+                    >
+                      {quantityError}
+                    </p>
+                  )}
+
+                  {loginPrompt && (
+                    <p className="mt-3 text-sm text-slate-600" role="status">
+                      Log in as a buyer to add this commodity to your cart. {" "}
+                      <Link
+                        to="/login"
+                        className="font-semibold text-[#0d7181] underline underline-offset-2"
+                      >
+                        Log in
+                      </Link>
+                    </p>
+                  )}
+
+                  {cartMessage && (
+                    <>
+                      <p
+                        className="mt-3 text-sm font-medium text-emerald-700"
+                        role="status"
+                      >
+                        {cartMessage}
+                      </p>
+
+                      <Link
+                        to="/cart"
+                        className="mt-3 inline-flex items-center gap-2 text-sm font-semibold text-[#0d7181]"
+                      >
+                        View Cart
+                        <ArrowIcon diagonal />
+                      </Link>
+                    </>
+                  )}
+
+                  <p className="mt-3 text-xs leading-5 text-slate-500">
+                    Adding an item to your cart does not submit an order. Your
+                    request will be reviewed by the AJS team.
                   </p>
                 </div>
               </div>
@@ -226,7 +334,7 @@ function ProductDetail() {
       </main>
       <Footer />
     </div>
-  )
+  );
 }
 
-export default ProductDetail
+export default ProductDetail;

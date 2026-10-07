@@ -3,6 +3,8 @@ package main
 import (
 	"log"
 	"net/http"
+	"os"
+	"path/filepath"
 
 	"github.com/mrez09/AJS/config"
 	"github.com/mrez09/AJS/models"
@@ -10,11 +12,22 @@ import (
 	seeders "github.com/mrez09/AJS/seeders"
 )
 
-
 func main() {
 	db, err := config.ConnectDatabase()
 	if err != nil {
 		log.Fatal(err)
+	}
+
+	uploadDir := os.Getenv("AJS_UPLOAD_DIR")
+	if uploadDir == "" {
+		uploadDir = "uploads"
+	}
+	uploadDir, err = filepath.Abs(uploadDir)
+	if err != nil {
+		log.Fatal("Invalid image upload directory: ", err)
+	}
+	if err := os.MkdirAll(uploadDir, 0o750); err != nil {
+		log.Fatal("Unable to create image upload directory: ", err)
 	}
 
 	log.Println("Database connected successfully")
@@ -24,6 +37,8 @@ func main() {
 		&models.User{},
 		&models.Order{},
 		&models.OrderItem{},
+		&models.Cart{},
+		&models.CartItem{},
 	)
 
 	if err != nil {
@@ -38,15 +53,15 @@ func main() {
 	}
 
 	err = seeders.SeedUsers(db)
-		if err != nil {
-			log.Fatal(err)
-		}
+	if err != nil {
+		log.Fatal(err)
+	}
 
-		log.Println("Users seeded successfully")
+	log.Println("Users seeded successfully")
 
 	log.Println("Products seeded successfully")
 
-	router := routes.Register(db)
+	router := routes.Register(db, uploadDir)
 
 	log.Println("AJS API running on http://localhost:8080")
 

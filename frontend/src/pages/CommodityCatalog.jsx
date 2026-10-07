@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import ArrowIcon from '../components/ArrowIcon.jsx'
+import CommodityImage from '../components/CommodityImage.jsx'
 import Footer from '../components/Footer.jsx'
 import Navbar from '../components/Navbar.jsx'
 import { getProducts } from '../services/productService.js'
@@ -21,22 +22,12 @@ function ProductCard({ product }) {
       className="group overflow-hidden rounded-2xl border border-slate-200 bg-white transition-all hover:-translate-y-1 hover:border-cyan-200 hover:shadow-[0_16px_40px_rgba(16,43,69,0.08)]"
       aria-labelledby={`product-${product.ID}-name`}
     >
-      <div className="relative flex h-36 items-center justify-center overflow-hidden bg-gradient-to-br from-cyan-100 to-blue-200">
-        <div className="absolute -right-7 -top-12 size-36 rounded-full border border-white/50" />
-        <div className="absolute -right-1 -top-6 size-24 rounded-full border border-white/50" />
-        <div className="absolute -bottom-12 -left-7 size-36 rounded-full border border-white/50" />
-        <span className="relative grid size-16 place-items-center rounded-2xl border border-white/70 bg-white/35 text-xl font-semibold tracking-wide text-[#16455d] shadow-sm backdrop-blur-sm">
-          {product.Name
-            .split(/\s+/)
-            .slice(0, 2)
-            .map((word) => word[0])
-            .join('')
-            .toUpperCase()}
-        </span>
-        <span className="absolute left-4 top-4 rounded-full bg-white/70 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.13em] text-[#174c62] backdrop-blur">
-          {product.Grade}
-        </span>
-      </div>
+      <CommodityImage
+        image={product.Image}
+        name={product.Name}
+        grade={product.Grade || 'Grade not specified'}
+        className="h-36"
+      />
 
       <div className="p-5">
         <h2
@@ -185,9 +176,9 @@ function CommodityCatalog() {
             <div className="mt-10 text-center">
               <Link
                 className="inline-flex items-center gap-2 text-sm font-semibold text-[#0d7181] transition-colors hover:text-[#102b45]"
-                to="/#buyer-cta"
+                to="/#contact"
               >
-                Discuss your requirements <ArrowIcon diagonal />
+                Contact AJS <ArrowIcon diagonal />
               </Link>
             </div>
           </div>

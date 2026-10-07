@@ -1,16 +1,43 @@
-# React + Vite
+AJS Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+React frontend for the PT Altisan Jaya Sinergi (AJS) B2B fish commodity trading and supply application.
 
-Currently, two official plugins are available:
+Tech Stack
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+React 19
 
-## React Compiler
+Vite 8
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+React Router 7
 
-## Expanding the ESLint configuration
+Tailwind CSS 4
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+ESLint
+
+Features
+
+Corporate homepage and commodity catalog
+
+Commodity details, specifications, availability, and stock
+
+Buyer authentication, cart, and order requests
+
+Buyer order history and status tracking
+
+Admin commodity management and order request review
+
+Run Locally
+
+Make sure the Go backend is running on http://localhost:8080 and the required database configuration is set.
+
+npm install
+npm run dev
+
+Vite normally serves the frontend at http://localhost:5173 and proxies API requests to the backend.
+
+Validation
+
+npm run lint
+npm run build
+
+See the root README.md for the complete project setup, environment configuration, demo accounts, and backend instructions.

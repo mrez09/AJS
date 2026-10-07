@@ -18,8 +18,8 @@ function Footer() {
           <Link className="text-sm font-medium text-slate-600 hover:text-[#0d7181]" to="/commodities">
             Commodities
           </Link>
-          <Link className="text-sm font-medium text-slate-600 hover:text-[#0d7181]" to="/#buyer-cta">
-            Request Order
+          <Link className="text-sm font-medium text-slate-600 hover:text-[#0d7181]" to="/#contact">
+            Contact AJS
           </Link>
         </nav>
         <p className="text-xs text-slate-500">

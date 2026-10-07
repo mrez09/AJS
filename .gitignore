@@ -1,2 +1,5 @@
 # Environment variables
 .env
+# Locally uploaded product images (configurable with AJS_UPLOAD_DIR)
+/uploads/
+/backend/uploads/
